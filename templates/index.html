@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Address Lookup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            width: 400px;
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+            border: none;
+            background: #007BFF;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            text-align: left;
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🔍 IP Address Lookup</h2>
+        <input type="text" id="ipInput" placeholder="Enter IP (or leave blank for your own)">
+        <button onclick="getInfo()">Get Info</button>
+        <button onclick="copyInfo()">Copy</button>
+        <button onclick="exportInfo()">Export</button>
+        <pre id="output"></pre>
+    </div>
+
+    <script>
+        async function getInfo() {
+            const ip = document.getElementById("ipInput").value.trim();
+            const output = document.getElementById("output");
+            output.textContent = "Fetching data...";
+
+            try {
+                const res = await fetch(`http://127.0.0.1:5000/get_info?ip=${encodeURIComponent(ip)}`);
+                const data = await res.json();
+
+                if (data.error) {
+                    output.textContent = `⚠️ Error: ${data.error}`;
+                } else {
+                    output.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (err) {
+                output.textContent = "❌ Error fetching data: " + err.message;
+            }
+        }
+
+        function copyInfo() {
+            const text = document.getElementById("output").textContent;
+            navigator.clipboard.writeText(text);
+            alert("📋 Copied to clipboard!");
+        }
+
+        function exportInfo() {
+            const text = document.getElementById("output").textContent;
+            const blob = new Blob([text], { type: "text/plain" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "ip_info.txt";
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
