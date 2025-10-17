@@ -102,11 +102,12 @@
         <input type="text" id="ipInput" placeholder="Enter IP (or leave blank for your own)">
         <button onclick="getInfo()">Get Info</button>
         <button onclick="copyInfo()">Copy</button>
+        <button onclick="exportInfo()">Export</button>
         <!-- This div will now hold the structured output -->
         <div id="output-container"></div>
     </div>
 
-    <script>
+    <script> 
         let lastFetchedData = null; // Global variable to store the last fetched data
 
         async function getInfo() {
@@ -151,17 +152,34 @@
             }
         }
 
-        function copyInfo() {
-            if (lastFetchedData) {
-                // Reconstruct the JSON string from the stored data for copying
-                const text = JSON.stringify(lastFetchedData, null, 2);
-                navigator.clipboard.writeText(text);
-                alert("📋 Copied to clipboard!");
-            } else {
-                alert("No data to copy! Please fetch IP information first.");
-            }
+    function copyInfo() {
+        if (lastFetchedData) {
+            // Reconstruct the JSON string from the stored data for copying
+            const text = JSON.stringify(lastFetchedData, null, 2);
+            navigator.clipboard.writeText(text);
+            alert("📋 Copied to clipboard!");
+        } else {
+            alert("No data to copy! Please fetch IP information first.");
         }
+    }
 
+    function exportInfo() {
+        if (lastFetchedData) {
+            // Use the stored JSON data for export
+            const text = JSON.stringify(lastFetchedData, null, 2);
+            const blob = new Blob([text], { type: "text/plain" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "ip_info.txt";
+            document.body.appendChild(a); // Append to body to ensure it's in the DOM
+            a.click();
+            document.body.removeChild(a); // Clean up
+            URL.revokeObjectURL(url);
+        }else {
+            alert("No data to export! Please fetch IP information first.");
+        }
+    }
     </script>
 </body>
 </html>
