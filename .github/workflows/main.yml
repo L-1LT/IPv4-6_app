@@ -1,32 +1,30 @@
-name: Automated CI Testing
+name: Automated CI Testing Pipeline
 
 on:
   push:
-    branches: [ main ] # Runs on every commit to main
+    branches: [ main ]
   pull_request:
-    branches: [ main ] # Runs on every pull request against main
+    branches: [ main ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout repository
-      # Downloads your code from the repository
       uses: actions/checkout@v4
 
-    - name: Set up Python 3.10
-      # Installs the correct Python version
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
 
     - name: Install dependencies
-      # Installs all required packages (Flask, requests, pytest)
       run: |
+        # Install packages needed for the app and the tests
         pip install requests flask pytest
-
+        
     - name: Run Pytest suite
-      # Executes the tests defined in test_api.py
-      # The -v flag provides verbose output on test names
+      # Executes tests and fails the job if any test fails
       run: |
         pytest -v
