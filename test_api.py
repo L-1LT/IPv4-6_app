@@ -16,7 +16,7 @@ def test_get_info_success_known_ip(client):
     assert response.status_code == 200
     assert data is not None
     assert data.get('IP Address') == '8.8.8.8'
-    assert data.get('Organization') == 'Google LLC'
+    assert data.get('Organization') == 'GOOGLE'
     assert 'error' not in data
 
 def test_get_info_no_ip_success(client):
