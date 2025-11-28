@@ -21,8 +21,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        # Install packages needed for the app and the tests
-        pip install requests flask pytest
+        pip install requests flask pytest requests_mock flask_cors
         
     - name: Run Pytest suite
       # Executes tests and fails the job if any test fails
