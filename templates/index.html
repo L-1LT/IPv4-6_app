@@ -94,6 +94,17 @@
             margin-top: 15px;
             text-align: center;
         }
+
+         #history-container {
+        margin-top: 20px;
+        border-top: 1px solid #ccc;
+        padding-top: 10px;
+        }
+
+        .history-item {
+        padding: 5px;
+        margin-bottom: 2px;
+        }
     </style>
 </head>
 <body>
@@ -103,54 +114,66 @@
         <button onclick="getInfo()">Get Info</button>
         <button onclick="copyInfo()">Copy</button>
         <button onclick="exportInfo()">Export</button>
+        <button onclick="clearHistory()">Clear History</button> <!-- Added clear history button -->
         <!-- This div will now hold the structured output -->
         <div id="output-container"></div>
+        <div id="history-container"><!-- History will be displayed here --></div>
     </div>
 
     <script> 
-        let lastFetchedData = null; // Global variable to store the last fetched data
+    let lastFetchedData = null; // Global variable to store the last fetched data
+    let history = []; // Array to store the history of fetched data
+    const maxHistorySize = 5; // Maximum number of history items to store
 
-        async function getInfo() {
-            const ip = document.getElementById("ipInput").value.trim();
-            const outputContainer = document.getElementById("output-container");
-            outputContainer.innerHTML = "Fetching data..."; // Clear previous results and show loading
+    async function getInfo() {
+        const ip = document.getElementById("ipInput").value.trim();
+        const outputContainer = document.getElementById("output-container");
+        outputContainer.innerHTML = "Fetching data..."; // Clear previous results and show loading
 
-            try {
-                const res = await fetch(`http://127.0.0.1:5000/get_info?ip=${encodeURIComponent(ip)}`);
-                const data = await res.json();
+        try {
+            const res = await fetch(`http://127.0.0.1:5000/get_info?ip=${encodeURIComponent(ip)}`);
+            const data = await res.json();
 
-                if (data.error) {
-                    outputContainer.innerHTML = `<div class="error-message">⚠️ Error: ${data.error}</div>`;
-                    lastFetchedData = null; // Clear stored data on error
-                } else {
-                    lastFetchedData = data; // Store the fetched data
-                    outputContainer.innerHTML = ""; // Clear loading message
+            if (data.error) {
+                outputContainer.innerHTML = `<div class="error-message">⚠️ Error: ${data.error}</div>`;
+                lastFetchedData = null; // Clear stored data on error
+            } else {
+                lastFetchedData = data; // Store the fetched data
 
-                    for (const key in data) {
-                        if (data.hasOwnProperty(key)) {
-                            const infoDiv = document.createElement("div");
-                            infoDiv.classList.add("ip-info-item");
+                // Add to history
+                history.push({ ip: ip, data: data });
+                if (history.length > maxHistorySize) {
+                    history.shift(); // Remove the oldest entry if history is too long
+                }
+                updateHistoryDisplay();
 
-                            const labelSpan = document.createElement("span");
-                            labelSpan.classList.add("ip-info-label");
-                            labelSpan.textContent = `${key}:`; // No space after colon, CSS handles alignment
+                outputContainer.innerHTML = ""; // Clear loading message
 
-                            const valueSpan = document.createElement("span");
-                            valueSpan.classList.add("ip-info-value");
-                            // Handle boolean values for display
-                            valueSpan.textContent = typeof data[key] === 'boolean' ? (data[key] ? 'Yes' : 'No') : data[key];
+                for (const key in data) {
+                    if (data.hasOwnProperty(key)) {
+                        const infoDiv = document.createElement("div");
+                        infoDiv.classList.add("ip-info-item");
 
-                            infoDiv.appendChild(labelSpan);
-                            infoDiv.appendChild(valueSpan);
-                            outputContainer.appendChild(infoDiv);
-                        }
+                        const labelSpan = document.createElement("span");
+                        labelSpan.classList.add("ip-info-label");
+                        labelSpan.textContent = `${key}:`; // No space after colon, CSS handles alignment
+
+                        const valueSpan = document.createElement("span");
+                        valueSpan.classList.add("ip-info-value");
+                        // Handle boolean values for display
+                        valueSpan.textContent = typeof data[key] === 'boolean' ? (data[key] ? 'Yes' : 'No') : data[key];
+
+                        infoDiv.appendChild(labelSpan);
+                        infoDiv.appendChild(valueSpan);
+                        outputContainer.appendChild(infoDiv);
                     }
                 }
-            } catch (err) {
-                outputContainer.innerHTML = `<div class="error-message">❌ Error fetching data: ${err.message}</div>`;
-                lastFetchedData = null; // Clear stored data on error
             }
+        } catch (err) {
+            outputContainer.innerHTML = `<div class="error-message">❌ Error fetching data: ${err.message}</div>`;
+            lastFetchedData = null; // Clear stored data on error
         }
+    }
 
     function copyInfo() {
         if (lastFetchedData) {
@@ -176,9 +199,60 @@
             a.click();
             document.body.removeChild(a); // Clean up
             URL.revokeObjectURL(url);
-        }else {
+        } else {
             alert("No data to export! Please fetch IP information first.");
         }
+    }
+
+    function updateHistoryDisplay() {
+        const historyContainer = document.getElementById("history-container");
+        historyContainer.innerHTML = ""; // Clear previous history
+
+        history.forEach((entry, index) => {
+            const historyItem = document.createElement("div");
+            historyItem.classList.add("history-item");
+            historyItem.textContent = `IP: ${entry.ip} - ${new Date().toLocaleTimeString()}`; // Display IP and timestamp
+
+            // Add a click event to load the data from history
+            historyItem.addEventListener("click", () => {
+                displayHistoryData(entry.data);
+            });
+
+            historyContainer.appendChild(historyItem);
+        });
+    }
+
+    function displayHistoryData(data) {
+        lastFetchedData = data; // Set the data to be the selected history data
+        const outputContainer = document.getElementById("output-container");
+        outputContainer.innerHTML = ""; // Clear current display
+
+        if (data) {
+            for (const key in data) {
+                if (data.hasOwnProperty(key)) {
+                    const infoDiv = document.createElement("div");
+                    infoDiv.classList.add("ip-info-item");
+
+                    const labelSpan = document.createElement("span");
+                    labelSpan.classList.add("ip-info-label");
+                    labelSpan.textContent = `${key}:`;
+
+                    const valueSpan = document.createElement("span");
+                    valueSpan.classList.add("ip-info-value");
+                    valueSpan.textContent = typeof data[key] === 'boolean' ? (data[key] ? 'Yes' : 'No') : data[key];
+
+                    infoDiv.appendChild(labelSpan);
+                    infoDiv.appendChild(valueSpan);
+                    outputContainer.appendChild(infoDiv);
+                }
+            }
+        }
+    }
+
+    function clearHistory() {
+        history = [];
+        updateHistoryDisplay();
+        alert("History cleared!");
     }
     </script>
 </body>

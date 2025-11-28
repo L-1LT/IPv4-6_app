@@ -1,0 +1,29 @@
+name: Automated CI Testing Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        pip install requests flask pytest requests_mock flask_cors
+        
+    - name: Run Pytest suite
+      # Executes tests and fails the job if any test fails
+      run: |
+        pytest -v
