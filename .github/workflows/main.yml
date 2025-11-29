@@ -2,9 +2,9 @@ name: Automated CI Testing Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, log-branch ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, log-branch ]
 
 jobs:
   test:
